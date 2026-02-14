@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle Share | GSU Food Rescue</title>
+    <style>
+        /* Colors based on GSU branding */
+        :root { --gsu-blue: #001932; --gsu-gold: #87714D; --light-gray: #f4f4f4; }
+        body { font-family: Arial, sans-serif; background-color: var(--light-gray); margin: 0; color: #333; }
+
+        /* HEADER - Profile on Far Right */
+        .header {
+            background: var(--gsu-blue);
+            color: white; padding: 10px 20px;
+            border-bottom: 5px solid var(--gsu-gold);
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo-text {
+            font-size: 22px; font-weight: bold;
+            position: absolute; left: 50%; transform: translateX(-50%);
+        }
+
+        /* LOGIN SCREEN */
+        #login-overlay { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-card { width: 350px; text-align: center; }
+
+        /* PROFILE ICON & MENU */
+        .profile-container { position: relative; margin-left: auto; }
+        .profile-circle {
+            width: 38px; height: 38px; background: var(--gsu-gold);
+            color: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center;
+            cursor: pointer; font-weight: bold; border: 2px solid white;
+        }
+        .profile-dropdown {
+            display: none; position: absolute; right: 0; top: 50px;
+            background: white; border: 1px solid #ccc; border-radius: 8px;
+            width: 220px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .profile-dropdown.active { display: block; }
+
+        /* DASHBOARD LAYOUT */
+        .container { max-width: 500px; margin: auto; padding: 20px 15px; }
+        .food-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 6px solid var(--gsu-gold); }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
+
+        /* SEARCH & FILTER AREA */
+        .filter-section { background: #eef2f6; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+
+        /* BUTTONS */
+        .btn-primary { background: var(--gsu-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-claim { background: var(--gsu-blue); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-logout { width:100%; padding:8px; border:none; background:#f8d7da; cursor:pointer; color:#721c24; font-weight:bold; }
+
+        /* BADGES */
+        .tag { background: #eef2f6; color: var(--gsu-blue); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .claimed-box { background: #fff5f5; border: 1px solid #feb2b2; padding: 10px; border-radius: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="login-card">
+        <h1 style="color: var(--gsu-blue);">🦅 Eagle Share</h1>
+        <input type="email" id="email-input" placeholder="GSU Email">
+        <input type="password" id="pass-input" placeholder="Password">
+        <button class="btn-primary" onclick="handleLogin()">Log In</button>
+        <p id="login-error" style="color: red; display: none;">Invalid GSU Email.</p>
+    </div>
+</div>
+
+<div id="main-content" style="display:none;">
+    <div class="header">
+        <div class="logo-text">🦅 EAGLE SHARE</div>
+        <div class="profile-container">
+            <div class="profile-circle" onclick="toggleProfile()">
+                <span id="profile-initials">U</span>
+            </div>
+            <div id="profile-menu" class="profile-dropdown">
+                <div style="font-size: 11px; color: #888;">LOGGED IN AS:</div>
+                <div id="user-display-email" style="font-weight: bold; font-size: 13px; color: var(--gsu-blue); margin-bottom: 10px;"></div>
+                <button class="btn-logout" onclick="logout()">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="food-card" style="border-left-color: var(--gsu-blue);">
+            <h3 style="margin-top:0">Post New Food</h3>
+            <form id="postForm" onsubmit="handlePost(event)">
+                <input type="text" id="title" placeholder="Item Name" required>
+                <textarea id="description" placeholder="Description..." required></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <select id="category" required>
+                        <option value="" disabled selected>Category</option>
+                        <option value="Perishable">🍎 Perishable</option>
+                        <option value="Frozen Goods">❄️ Frozen Goods</option>
+                        <option value="Pet Food">🐾 Pet Food</option>
+                        <option value="Canned">🥫 Canned</option>
+                        <option value="Dry Goods">📦 Dry Goods</option>
+                    </select>
+                    <select id="location" required>
+                        <option value="" disabled selected>Safe Zone</option>
+                        <option value="Russell Union">🏛️ Russell Union</option>
+                        <option value="Henderson Library">📚 Library</option>
+                        <option value="The RAC">🏀 The RAC</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">List Item</button>
+            </form>
+        </div>
+
+        <div class="filter-section">
+            <input type="text" id="search-input" onkeyup="filterFeed()" placeholder="🔍 Search...">
+            <div style="display: flex; gap: 5px;">
+                <select id="filter-category" onchange="filterFeed()">
+                    <option value="ALL">All Categories</option>
+                    <option value="Perishable">🍎 Perishable</option>
+                    <option value="Frozen Goods">❄️ Frozen Goods</option>
+                    <option value="Pet Food">🐾 Pet Food</option>
+                    <option value="Canned">🥫 Canned</option>
+                    <option value="Dry Goods">📦 Dry Goods</option>
+                </select>
+                <select id="filter-location" onchange="filterFeed()">
+                    <option value="ALL">All Safe Zones</option>
+                    <option value="Russell Union">Russell Union</option>
+                    <option value="Henderson Library">Library</option>
+                    <option value="The RAC">The RAC</option>
+                </select>
+            </div>
+        </div>
+
+        <h2>Available Food</h2>
+        <div id="food-feed"></div>
+    </div>
+</div>
+
+<script>
+    let allItems = []; // Master list for filtering
+
+    // --- AUTHENTICATION ---
+    function handleLogin() {
+        const email = document.getElementById('email-input').value.toLowerCase();
+        const pass = document.getElementById('pass-input').value;
+        if (email.endsWith('@georgiasouthern.edu') && pass.length > 0) {
+            localStorage.setItem('userEmail', email);
+            showDashboard();
+        } else {
+            document.getElementById('login-error').style.display = 'block';
+        }
+    }
+
+    function showDashboard() {
+        const email = localStorage.getItem('userEmail');
+        document.getElementById('user-display-email').innerText = email;
+        document.getElementById('profile-initials').innerText = email.charAt(0).toUpperCase();
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        refreshFeed();
+    }
+
+    function toggleProfile() {
+        document.getElementById('profile-menu').classList.toggle('active');
+    }
+
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    // --- DATABASE LOGIC ---
+    async function handlePost(event) {
+        event.preventDefault(); // Stop page refresh
+        const data = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            category: document.getElementById('category').value,
+            location: document.getElementById('location').value,
+            posterEmail: localStorage.getItem('userEmail'),
+            status: 'AVAILABLE'
+        };
+        await fetch('/api/listings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        document.getElementById('postForm').reset();
+        refreshFeed();
+    }
+
+    async function refreshFeed() {
+        const res = await fetch('/api/listings');
+        allItems = await res.json();
+        filterFeed();
+    }
+
+    function filterFeed() {
+        const currentUser = localStorage.getItem('userEmail');
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const cat = document.getElementById('filter-category').value;
+        const loc = document.getElementById('filter-location').value;
+
+        const feed = document.getElementById('food-feed');
+
+        // 1. Filter the list
+        let filtered = allItems.filter(item => {
+            const matchesSearch = item.title.toLowerCase().includes(search);
+            const matchesCat = (cat === 'ALL' || item.category === cat);
+            const matchesLoc = (loc === 'ALL' || item.location === loc);
+            return matchesSearch && matchesCat && matchesLoc;
+        });
+
+        // 2. Build the HTML cards
+        feed.innerHTML = filtered.map(item => {
+            const isOwner = (item.posterEmail === currentUser);
+            const isAvailable = (item.status === 'AVAILABLE');
+            return `
+                <div class="food-card">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span class="tag">${item.category}</span>
+                        <span style="font-size:12px;">📍 ${item.location}</span>
+                    </div>
+                    <h3>${item.title}</h3>
+                    <p>${item.description}</p>
+                    ${isAvailable ?
+                        `<button class="btn-claim" onclick="claim(${item.id})">Claim</button>` :
+                        `<div class="claimed-box">
+                            <span style="color:red; font-weight:bold;">CLAIMED</span>
+                            ${isOwner ? `<div style="font-size:12px;">By: ${item.claimedBy}</div>` : ''}
+                        </div>`
+                    }
+                </div>`;
+        }).join('');
+    }
+
+    async function claim(id) {
+        const email = localStorage.getItem('userEmail');
+        await fetch(`/api/listings/${id}/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: email
+        });
+        refreshFeed();
+    }
+
+    // Close menu on click-away
+    window.onclick = (e) => {
+        if (!e.target.closest('.profile-container')) {
+            document.getElementById('profile-menu').classList.remove('active');
+        }
+    };
+
+    if(localStorage.getItem('userEmail')) showDashboard();
+    setInterval(refreshFeed, 10000); // Check for new food every 10 seconds
+</script>
+</body>
+</html>
