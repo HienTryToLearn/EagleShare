@@ -16,20 +16,20 @@ public class Listing {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String category; // e.g., Perishable, Canned [cite: 34]
+    private String category; // e.g., Perishable, Canned
 
-    private String location; // Campus Safe Zones [cite: 32]
+    private String location; // Campus Safe Zones
 
-    private String status = "AVAILABLE"; // AVAILABLE, PENDING, CLAIMED [cite: 30]
+    private String status = "AVAILABLE"; // AVAILABLE, PENDING, CLAIMED
 
     private String posterEmail; // Private email of the student sharing food
 
-    private String claimedBy; // GSU email of the student who claimed it [cite: 44]
+    private String claimedBy; // GSU email of the student who claimed it
 
-    private LocalDateTime claimTime; // Timestamp for the 10-minute pickup rule [cite: 33]
+    private LocalDateTime claimTime; // Timestamp for the 10-minute pickup rule
 
     @Version
-    private Integer version = 0; // Henry's logic to prevent race conditions [cite: 8, 28]
+    private Integer version = 0; // Henry's logic to prevent race conditions
 
     // --- GETTERS AND SETTERS ---
 

@@ -59,29 +59,30 @@ public class ListingController {
     }
 
     @PostMapping("/{id}/claim")
-    public Listing claimListing(@PathVariable Long id, @RequestBody String claimerEmail) {
-        // Clean up the email string (remove quotes if sent as raw text from JS)
-        String cleanEmail = claimerEmail.replace("\"", "").trim().toLowerCase();
+    public Listing claimListing(@PathVariable Long id,
+                                @RequestBody Map<String, String> request) {
 
-        // Validation: Only GSU emails can claim
-        if (!cleanEmail.endsWith("@georgiasouthern.edu")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only GSU students can claim food!");
-        }
+        String cleanEmail = request.get("email").toLowerCase().trim();
 
         Listing listing = listingRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Listing not found"));
 
-        if ("AVAILABLE".equals(listing.getStatus())) {
-            listing.setStatus("CLAIMED");
-            listing.setClaimedBy(cleanEmail);
-            listing.setClaimTime(LocalDateTime.now());
-            return listingRepository.save(listing);
-        } else {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "This item was already claimed!");
+
+        if (!"AVAILABLE".equals(listing.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "This listing is currently locked by another student.");
         }
+
+        // LOCK IT
+        listing.setStatus("PENDING");
+        listing.setClaimedBy(cleanEmail);
+        listing.setClaimTime(LocalDateTime.now());
+
+        return listingRepository.save(listing);
     }
 
-    // ... inside your ListingController class, just add this:
+
 
     @PostMapping("/{id}/delete")
     public ResponseEntity<?> deleteListing(@PathVariable Long id,
@@ -98,12 +99,66 @@ public class ListingController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized");
         }
 
-        // Log the deletion (you can later upgrade this to save to a database table)
+        // Log the deletion (can later upgrade this to save to a database table)
         System.out.println("Post " + id + " deleted by " + userEmail + ". Reason: " + reason);
 
         listingRepository.delete(listing);
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/unclaim")
+    public Listing unclaimListing(@PathVariable Long id,
+                                  @RequestBody Map<String, String> request) {
+
+        String userEmail = request.get("email").toLowerCase().trim();
+
+        Listing listing = listingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Listing not found"));
+
+        // Only the person who claimed it can unclaim
+        if (!userEmail.equalsIgnoreCase(listing.getClaimedBy())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You did not claim this listing.");
+        }
+
+        if ("PENDING".equals(listing.getStatus())) {
+
+            listing.setStatus("AVAILABLE");
+            listing.setClaimedBy(null);
+            listing.setClaimTime(null);
+
+            return listingRepository.save(listing);
+        }
+
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Cannot unclaim this listing.");
+    }
+
+    @PostMapping("/{id}/confirm")
+    public Listing confirmClaim(@PathVariable Long id,
+                                @RequestBody Map<String, String> request) {
+
+        String userEmail = request.get("email").toLowerCase().trim();
+
+        Listing listing = listingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Listing not found"));
+
+        // Only the poster can confirm
+        if (!listing.getPosterEmail().equalsIgnoreCase(userEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only the poster can confirm pickup.");
+        }
+
+        if ("PENDING".equals(listing.getStatus())) {
+
+            listing.setStatus("CLAIMED");
+            return listingRepository.save(listing);
+        }
+
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Listing is not pending.");
+    }
 
 }
