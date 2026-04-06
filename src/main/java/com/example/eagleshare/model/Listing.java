@@ -13,6 +13,7 @@ public class Listing {
 
     private String title;
 
+    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -27,6 +28,14 @@ public class Listing {
     private String claimedBy; // GSU email of the student who claimed it
 
     private LocalDateTime claimTime; // Timestamp for the 10-minute pickup rule
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     @Version
     private Integer version = 0; // Henry's logic to prevent race conditions
@@ -63,11 +72,16 @@ public class Listing {
     public Integer getVersion() { return version; }
     public void setVersion(Integer version) { this.version = version; }
 
+    @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String imageBase64;
 
     public String getImageBase64() {
         return imageBase64;
+
+    }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public void setImageBase64(String imageBase64) {

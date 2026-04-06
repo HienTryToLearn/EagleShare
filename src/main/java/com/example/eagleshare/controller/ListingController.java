@@ -22,8 +22,8 @@ public class ListingController {
     private ListingRepository listingRepository;
 
     @GetMapping
-    public List<Listing> getAllListings() {
-        return listingRepository.findAll();
+    public List<Listing> getAvailableListings() {
+        return listingRepository.findByStatus("AVAILABLE"); //show listing that is "Available" only
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
@@ -47,7 +47,6 @@ public class ListingController {
         listing.setLocation(location);
         listing.setPosterEmail(posterEmail);
         listing.setStatus("AVAILABLE");
-        listing.setVersion(0);
 
         if (image != null && !image.isEmpty()) {
             String base64Image = java.util.Base64.getEncoder()
@@ -107,32 +106,28 @@ public class ListingController {
     }
 
     @PostMapping("/{id}/unclaim")
-    public Listing unclaimListing(@PathVariable Long id,
-                                  @RequestBody Map<String, String> request) {
+    public Listing unclaimListing(@PathVariable Long id, @RequestBody Map<String, String> request) {
 
         String userEmail = request.get("email").toLowerCase().trim();
 
         Listing listing = listingRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Listing not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
 
-        // Only the person who claimed it can unclaim
-        if (!userEmail.equalsIgnoreCase(listing.getClaimedBy())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "You did not claim this listing.");
+        // THE SECURITY GATE
+        if (!userEmail.equalsIgnoreCase(listing.getClaimedBy()) &&
+                !userEmail.equalsIgnoreCase(listing.getPosterEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized action.");
         }
 
+        // THE ACTION
         if ("PENDING".equals(listing.getStatus())) {
-
             listing.setStatus("AVAILABLE");
             listing.setClaimedBy(null);
             listing.setClaimTime(null);
-
             return listingRepository.save(listing);
         }
 
-        throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "Cannot unclaim this listing.");
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot unclaim this listing.");
     }
 
     @PostMapping("/{id}/confirm")
