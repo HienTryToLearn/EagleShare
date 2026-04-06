@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Eagle Share | GSU Food Rescue</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- ===== POST PANEL ===== -->
+    <div class="post-panel">
+        <h3>Post Food</h3>
+
+        <form id="postForm" onsubmit="handlePost(event)">
+            <input type="text" id="title" placeholder="Item Name (e.g., Pizza)" required>
+
+            <textarea id="description" placeholder="Exact location details..." required></textarea>
+
+            <select id="category" required>
+                <option value="">Select Category</option>
+                <option value="Frozen Goods">Frozen Goods</option>
+                <option value="Perishable">Perishable</option>
+                <option value="Canned">Canned</option>
+            </select>
+
+            <select id="location" required>
+                <option value="">Select Location</option>
+                <option value="The RAC">The RAC</option>
+                <option value="Russell Union">Russell Union</option>
+                <option value="Henderson Library">Henderson Library</option>
+            </select>
+
+            <div class="upload-container" onclick="document.getElementById('image').click()">
+                <div class="upload-content">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">
+                        <strong>Click to upload photo</strong>
+                        <span id="fileName">No file selected</span>
+                    </div>
+                </div>
+
+                <input type="file" id="image" accept="image/*" hidden onchange="previewImage(event)">
+            </div>
+
+            <div id="imagePreviewContainer" style="display:none;">
+                <img id="imagePreview">
+            </div>
+
+            <button type="submit" class="primary-btn">List Item</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
