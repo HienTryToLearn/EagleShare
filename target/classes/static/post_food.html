@@ -10,6 +10,22 @@
 </head>
 
 <body>
+    <div class="header">
+            <div>
+                <a class="logo" href='index.html'>EAGLE SHARE</a>
+            </div>
+
+            <div class="profile-section">
+                <div class="profile-circle" id="user-initial" onclick="toggleMenu(event)">U</div>
+
+                <div class="dropdown-menu" id="profileMenu">
+                    <div id="user-email-display" style="padding: 5px 12px; font-size: 11px; color: #64748b;"></div>
+
+                    <button class="menu-item" onclick="openActivity()">📋 My Activity</button>
+                    <button class="menu-item menu-logout" onclick="logout()">🚪 Log Out</button>
+                </div>
+            </div>
+        </div>
     <!-- ===== POST PANEL ===== -->
     <div class="post-panel">
         <h3>Post Food</h3>

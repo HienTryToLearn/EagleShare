@@ -1,6 +1,7 @@
 /* ================= ROOT VARIABLES ================= */
 :root {
     --gsu-blue: #001932;
+    --gsu-blue-light: #002a54;
     --gsu-gold: #87714D;
     --bg: #f5f7fa;
 }
@@ -36,6 +37,8 @@ body {
     font-size: 20px;
     font-weight: 900;
     letter-spacing: 0.5px;
+    text-decoration: none;
+    color: var(--bg);
 }
 
 .profile-section {
@@ -116,17 +119,49 @@ body {
 }
 
 .post-button {
-    color: white;
-    width: 60px;
-    height: 60px;
-    background: var(--gsu-blue);
+    position: relative;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
+    background: linear-gradient(145deg, var(--gsu-blue-light), var(--gsu-blue));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 14px 0 rgba(0, 25, 50, 0.4);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.post-button::before,
+.post-button::after {
+    content: "";
+    position: absolute;
+    background-color: white;
+    border-radius: 2px;
+    transition: transform 0.3s ease;
+}
+
+
+.post-button::before {
+    width: 24px;
+    height: 3px;
+}
+
+
+.post-button::after {
+    width: 3px;
+    height: 24px;
+}
+
+
+.post-button:hover {
+    transform: translateY(-2px) rotate(90deg);
+    box-shadow: 0 6px 20px rgba(0, 25, 50, 0.25);
+}
+
+.post-button:active {
+    transform: translateY(0) scale(0.95);
 }
 
 /* ================= LEFT PANEL ================= */
