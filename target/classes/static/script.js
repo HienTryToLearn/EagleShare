@@ -47,6 +47,7 @@ function showDashboard() {
 
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
+    document.getElementById('toolbar').style.display = 'flex';
     document.getElementById('user-initial').innerText =
         email.charAt(0).toUpperCase();
     document.getElementById('user-email-display').innerText = email;
